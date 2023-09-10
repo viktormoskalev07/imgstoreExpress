@@ -19,6 +19,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 // Парсинг JSON-тела запроса
 app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb" }));
+
 const cors = require("cors");
 
 // Это будет разрешать все домены. В реальном приложении вы, возможно, захотите ограничить это.
