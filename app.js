@@ -61,6 +61,9 @@ app.post("/upload", upload.single("file"), (req, res) => {
   });
 });
 app.post("/uploadBase64", (req, res) => {
+  const sizeInBytes = JSON.stringify(req.body).length;
+  const sizeInMegabytes = (sizeInBytes / (1024 * 1024)).toFixed(2);
+  console.log(`Request size: ${sizeInMegabytes} MB`);
   console.log(req.body.base64Image.length);
   const { base64Image } = req.body;
   if (!base64Image) {
