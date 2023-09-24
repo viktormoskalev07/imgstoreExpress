@@ -1,8 +1,11 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-const multer = require("multer");
+import express from 'express';
 const app = express();
+import multer from 'multer';
+import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
+
+import {createFolder, renameFilesAndCreateVideo} from "./video.js";
 const port = 3000;
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -19,9 +22,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 // Парсинг JSON-тела запроса
 app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-const cors = require("cors");
 
 // Это будет разрешать все домены. В реальном приложении вы, возможно, захотите ограничить это.
 app.use(cors());
@@ -44,8 +46,8 @@ app.post("/upload", upload.single("file"), (req, res) => {
   const newFileName = `${formattedDate}_${req.file.originalname}`;
 
   // Переименовываем файл
-  const oldPath = path.join(__dirname, req.file.path);
-  const newPath = path.join(__dirname, "uploads", newFileName);
+  const oldPath = path.join( req.file.path);
+  const newPath = path.join( "uploads", newFileName);
 
   fs.rename(oldPath, newPath, (err) => {
     if (err) {
@@ -101,9 +103,23 @@ app.post("/uploadBase64", (req, res) => {
   );
 });
 
+app.get("/create", (req,res)=>{
+  try{
+    createFolder("video");
+    renameFilesAndCreateVideo()
+    return    res.status(200).json( "done");
+  } catch (e){
+    return res
+        .status(500)
+        .json({ status: "error", message: "Could not save image" });
+  }
+
+})
+
+
 // Эндпоинт для получения списка всех файлов
 app.get("/gallery", (req, res) => {
-  const dirPath = path.join(__dirname, "uploads");
+  const dirPath = path.join( "uploads");
 
   if (!fs.existsSync(dirPath)) {
     return res.status(200).json({ files: [] });
@@ -114,6 +130,52 @@ app.get("/gallery", (req, res) => {
 });
 
 // Запуск сервера
+
+
+const uploadsDir = path.join( './video');
+
+app.get('/files', (req, res) => {
+  // Чтение содержимого папки
+  fs.readdir(uploadsDir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    // Возвращение списка файлов
+    res.json({ files });
+  });
+});
+
+app.get('/download/:filename', (req, res) => {
+  // Получение имени файла из параметров маршрута
+  const filename = req.params.filename;
+
+  // Построение полного пути к файлу
+  const filePath = path.join(uploadsDir, filename);
+
+  // Отправка файла
+  res.download(filePath, filename, (err) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+});
+app.get('/links', (req, res) => {
+  fs.readdir(uploadsDir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    let fileListHtml = '<ul>';
+    files.forEach(file => {
+      fileListHtml += `<li><a href="/download/${file}">${file}</a></li>`;
+    });
+    fileListHtml += '</ul>';
+
+    res.send(fileListHtml);
+  });
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

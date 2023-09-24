@@ -1,0 +1,3 @@
+file 'E:\camera\imgstoreExpress\uploads\2023-9-23_22-20-41_EA-Sports-FC-24-2048x1152.jpg'
+file 'E:\camera\imgstoreExpress\uploads\2023-9-23_22-20-49_aba55d01-a049-4fd2-9596-5b5d56b57b1e.jpg'
+file 'E:\camera\imgstoreExpress\uploads\2023-9-23_22-20-54_123.jpg'
